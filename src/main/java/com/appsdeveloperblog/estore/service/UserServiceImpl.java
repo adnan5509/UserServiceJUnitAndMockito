@@ -18,8 +18,10 @@ public class UserServiceImpl implements UserService {
         if(lastName == null || lastName.trim().length() == 0) {
             throw new IllegalArgumentException("User's last name is empty");
         }
+        User user = new User(firstName, lastName, email, UUID.randomUUID().toString());
+        usersRepository.save(user);
 
-        return new User(firstName, lastName, email, UUID.randomUUID().toString());
+        return user;
 
     }
 }
