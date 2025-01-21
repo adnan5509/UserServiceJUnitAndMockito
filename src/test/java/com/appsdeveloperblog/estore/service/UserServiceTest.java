@@ -36,9 +36,9 @@ public class UserServiceTest {
 
     @BeforeEach
     void init() {
-        firstName = "Noor";
-        lastName = "Mansab";
-        email = "nooradnan2808@gmail.com";
+        firstName = "bcsf12m014";
+        lastName = "bcsf12m014";
+        email = "bcsf12m014@gmail.com";
         password = "12345678";
         repeatPassword = "12345678";
         MockitoAnnotations.openMocks(this);
