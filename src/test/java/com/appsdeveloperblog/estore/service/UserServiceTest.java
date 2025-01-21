@@ -36,9 +36,9 @@ public class UserServiceTest {
 
     @BeforeEach
     void init() {
-        firstName = "Sergey";
-        lastName  = "Kargopolov";
-        email = "test@test.com";
+        firstName = "Noor";
+        lastName = "Mansab";
+        email = "nooradnan2808@gmail.com";
         password = "12345678";
         repeatPassword = "12345678";
         MockitoAnnotations.openMocks(this);
@@ -48,19 +48,19 @@ public class UserServiceTest {
     @Test
     void testCreateUser_whenUserDetailsProvided_returnsUserObject() {
         // Arrange
-        Mockito.when(usersRepository.save(any(User.class))).thenReturn(true);
+        when(usersRepository.save(any(User.class))).thenReturn(true);
 
         // Act
         User user = userService.createUser(firstName, lastName, email, password, repeatPassword);
 
         // Assert
-        assertNotNull(user, "The createUser() should not have returned null");
-        assertEquals(firstName, user.getFirstName(), "User's first name is incorrect.");
-        assertEquals(lastName, user.getLastName(), "User's last name is incorrect");
-        assertEquals(email, user.getEmail(), "User's email is incorrect");
-        assertNotNull(user.getId(), "User id is missing");
-        Mockito.verify(usersRepository)
-                .save(any(User.class));
+        assertNotNull(user, "The returned user is not null");
+        assertEquals(firstName, user.getFirstName(), "The first name should match");
+        assertEquals(lastName, user.getLastName(), "The last name should match");
+        assertEquals(email, user.getEmail(), "The email should match");
+        assertNotNull(user.getId(), "The returned user id should not be null");
+        verify(usersRepository, times(1)).save(any(User.class));
+
     }
 
     @DisplayName("Empty first name causes correct exception")
@@ -71,12 +71,11 @@ public class UserServiceTest {
         String expectedExceptionMessage = "User's first name is empty";
 
         // Act & Assert
-        IllegalArgumentException thrown = Assertions.assertThrows(IllegalArgumentException.class, ()-> {
-            userService.createUser(firstName, lastName, email, password, repeatPassword);
-        },"Empty first name should have caused an Illegal Argument Exception");
+        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> userService.createUser(firstName, lastName, email, password, repeatPassword), "Empty first name" +
+                " of returned user throws IllegalArgumentException");
 
         // Assert
-        assertEquals(expectedExceptionMessage,thrown.getMessage(),
+        assertEquals(expectedExceptionMessage, thrown.getMessage(),
                 "Exception error message is not correct");
     }
 
@@ -88,12 +87,12 @@ public class UserServiceTest {
         String expectedExceptionMessage = "User's last name is empty";
 
         // Act & Assert
-        IllegalArgumentException thrown = Assertions.assertThrows(IllegalArgumentException.class, ()-> {
+        IllegalArgumentException thrown = Assertions.assertThrows(IllegalArgumentException.class, () -> {
             userService.createUser(firstName, lastName, email, password, repeatPassword);
-        },"Empty last name should have caused an Illegal Argument Exception");
+        }, "Empty last name should have caused an Illegal Argument Exception");
 
         // Assert
-        assertEquals(expectedExceptionMessage,thrown.getMessage(),
+        assertEquals(expectedExceptionMessage, thrown.getMessage(),
                 "Exception error message is not correct");
     }
 
@@ -104,30 +103,33 @@ public class UserServiceTest {
         when(usersRepository.save(any(User.class))).thenThrow(RuntimeException.class);
 
         // Act & Assert
-        assertThrows(UserServiceException.class, ()-> {
-            userService.createUser(firstName, lastName, email, password, repeatPassword);
-        }, "Should have thrown UserServiceException instead");
+        assertThrows(
+                UserServiceException.class,
+                () -> {
+                    userService.createUser(firstName, lastName, email, password, repeatPassword);
+                },
+                "Should have thrown UserServiceException");
     }
 
     @Test
     @DisplayName("EmailNotificationException is handled")
     void testCreateUser_whenEmailNotificationExceptionThrown_throwsUserServiceException() {
         // Arrange
-       when(usersRepository.save(any(User.class))).thenReturn(true);
-
-       doThrow(EmailNotificationServiceException.class)
-               .when(emailVerificationService)
-               .scheduleEmailConfirmation(any(User.class));
-
-       // Act & Assert
-        assertThrows(UserServiceException.class, ()-> {
-            userService.createUser(firstName, lastName, email, password, repeatPassword);
-        }, "Should have thrown UserServiceException instead");
-
-        // Assert
-        verify(emailVerificationService, times(1)).
+        when(usersRepository.save(any(User.class))).thenReturn(true);
+        doThrow(EmailNotificationServiceException.class).
+                when(emailVerificationService).
                 scheduleEmailConfirmation(any(User.class));
 
+
+        // Act & Assert
+        assertThrows(UserServiceException.class,
+                () -> {
+                    userService.createUser(firstName, lastName, email, password, repeatPassword);
+                },
+                "createUser() should throw UserServiceException");
+
+        // Assert
+        verify(emailVerificationService).scheduleEmailConfirmation(any(User.class));
     }
 
     @DisplayName("Schedule Email Confirmation is executed")
